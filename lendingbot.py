@@ -43,6 +43,7 @@ else:
 
 Config.init(config_location)
 
+bot_label = str(Config.get("BOT", "label")) + ":\n"
 output_currency = Config.get('BOT', 'outputCurrency', 'BTC')
 end_date = Config.get('BOT', 'endDate')
 exchange = Config.get_exchange()
@@ -134,7 +135,7 @@ try:
                 print traceback.format_exc()
                 print "Unhandled error, please open a Github issue so we can fix it!"
                 if notify_conf['notify_caught_exception']:
-                    log.notify("{0}\n-------\n{1}".format(ex, traceback.format_exc()), notify_conf)
+                    log.notify(bot_label + "{0}\n-------\n{1}".format(ex, traceback.format_exc()), notify_conf)
             sys.stdout.flush()
             time.sleep(Lending.get_sleep_time())
 
@@ -146,3 +147,4 @@ except KeyboardInterrupt:
     log.log('bye')
     print 'bye'
     os._exit(0)  # Ad-hoc solution in place of 'exit(0)' TODO: Find out why non-daemon thread(s) are hanging on exit
+

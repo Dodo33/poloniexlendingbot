@@ -25,11 +25,13 @@ class AccountStats(Plugin):
     last_notification = 0
     earnings = {}
     report_interval = 86400
+    bot_label = "Lending Bot:\n"
 
     def on_bot_init(self):
         super(AccountStats, self).on_bot_init()
         self.init_db()
         self.report_interval = int(self.config.get("ACCOUNTSTATS", "ReportInterval", 86400))
+        self.bot_label = str(self.config.get("BOT", "label")) + ":\n"
 
     def before_lending(self):
         for coin in self.earnings:
@@ -153,9 +155,10 @@ class AccountStats(Plugin):
         if output != '':
             self.last_notification = sqlite3.time.time()
             output = 'Earnings:\n----------\n' + output
-            self.log.notify(output, self.notify_config)
+            self.log.notify(self.bot_label + output, self.notify_config)
             self.log.log(output)
 
     @staticmethod
     def format_value(value):
         return '{0:0.12f}'.format(float(value)).rstrip('0').rstrip('.')
+

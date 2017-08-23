@@ -12,6 +12,7 @@ Analysis = None
 
 SATOSHI = Decimal(10) ** -8
 
+bot_label = "Lending Bot:\n"
 sleep_time_active = 0
 sleep_time_inactive = 0
 sleep_time = 0
@@ -42,7 +43,7 @@ defaultLoanOrdersRequestLimit = 100
 
 
 def init(cfg, api1, log1, data, maxtolend, dry_run1, analysis, notify_conf1):
-    global Config, api, log, Data, MaxToLend, Analysis, notify_conf
+    global Config, api, log, Data, MaxToLend, Analysis, notify_conf, bot_label
     Config = cfg
     api = api1
     log = log1
@@ -50,6 +51,7 @@ def init(cfg, api1, log1, data, maxtolend, dry_run1, analysis, notify_conf1):
     MaxToLend = maxtolend
     Analysis = analysis
     notify_conf = notify_conf1
+    bot_label = str(Config.get("BOT", "label")) + ":\n"
 
     global sleep_time, sleep_time_active, sleep_time_inactive, min_daily_rate, max_daily_rate, spread_lend, \
         gap_bottom_default, gap_top_default, xday_threshold, xdays, min_loan_size, end_date, coin_cfg, min_loan_sizes, \
@@ -107,7 +109,7 @@ def set_sleep_time(usable):
 
 def notify_summary(sleep_time):
     try:
-        log.notify(Data.stringify_total_lent(*Data.get_total_lent()), notify_conf)
+        log.notify(bot_label + Data.stringify_total_lent(*Data.get_total_lent()), notify_conf)
     except Exception as ex:
         ex.message = ex.message if ex.message else str(ex)
         print("Error during summary notification: {0}".format(ex.message))
@@ -135,7 +137,7 @@ def notify_new_loans(sleep_time):
                 loan = loans_info[k]
                 t = "{0} {1} loan filled for {2} days at a rate of {3:.4f}%"
                 text = t.format(amount, loan['currency'], loan['duration'], float(loan['rate']) * 100)
-                log.notify(text, notify_conf)
+                log.notify(bot_label + text, notify_conf)
         loans_provided = new_provided
     except Exception as ex:
         ex.message = ex.message if ex.message else str(ex)
@@ -173,7 +175,7 @@ def create_lend_offer(currency, amt, rate):
         msg = api.create_loan_offer(currency, amt, days, 0, rate)
         if days == xdays and notify_conf['notify_xday_threshold']:
             text = "{0} {1} loan placed for {2} days at a rate of {3:.4f}%".format(amt, currency, days, rate * 100)
-            log.notify(text, notify_conf)
+            log.notify(bot_label + text, notify_conf)
         log.offer(amt, currency, rate, days, msg)
 
 
@@ -441,7 +443,8 @@ def transfer_balances():
                     exchange_balances[coin]) > 0:
                 msg = api.transfer_balance(coin, exchange_balances[coin], 'exchange', 'lending')
                 log.log(log.digestApiMsg(msg))
-                log.notify(log.digestApiMsg(msg), notify_conf)
+                log.notify(bot_label + log.digestApiMsg(msg), notify_conf)
             if coin not in exchange_balances:
                 print "WARN: Incorrect coin entered for transferCurrencies: " + coin
                 transferable_currencies.remove(coin)
+
